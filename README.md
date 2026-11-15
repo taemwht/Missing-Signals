@@ -62,6 +62,43 @@ It has two blind spots:
 - **We simulated the oxygen-clip error**, because no dataset records race.
 - **ICU patients and sepsis only.** This is a prototype, not a medical tool.
 
+## Common questions
+
+**Did you build your own model?**
+Yes. We trained a machine-learning model (LightGBM, which combines many small decision trees) on about 20,000 ICU stays from hospital A. We tested it on about 20,000 stays from hospital B, which it never saw.
+
+**How accurate is it?**
+"Accuracy" is misleading here, because sepsis is rare: only 7 in 100 patients (and 2 in 100 hours) in this data had sepsis. A model that always says "no sepsis" would be 98% accurate and would catch nobody. So we measure two things instead:
+
+| | Checklist | Our model |
+|---|---|---|
+| Sepsis patients warned early (emergency level) | 49% | **67%** |
+| Sepsis patients warned early (urgent level) | 78% | **84%** |
+| Telling sick from not sick (AUROC*) | 0.70 | **0.78** |
+
+\* AUROC: take one hour from a patient heading into sepsis and one from a patient who isn't. It is how often the model gives the sicker one a higher risk score. 0.5 is a coin flip; 1.0 is perfect.
+
+**Doesn't it just alarm more?**
+No. We set the model to raise exactly as many alarms as the checklist. False alarms stay about the same: 1.24 vs 1.21 per patient per day.
+
+**Why not use only the datathon's dataset?**
+Its labels are the checklist score itself (987 of 1,000 match), and it has one snapshot per patient with no time. It can't show when the checklist is wrong or late. We used it to check our code and to test the oxygen-clip error.
+
+**What makes the model better?**
+Two things: it watches how vital signs change over 6 hours, and it knows how long a patient has been in the ICU. ICU time is its biggest clue. Without it, the model warns early for 51%, about the same as the checklist.
+
+**Can you prove the oxygen clip hurts people with darker skin?**
+Not directly. Neither dataset records race. We simulated the error that research reports (oxygen reading 3 points too high) and showed what it does to each tool.
+
+**Is it fair across groups?**
+It warned early for more patients than the checklist for women, men, younger and older patients, and in surgical ICUs. In medical ICUs it was slightly worse (81% vs 82%).
+
+**Can a hospital use this tomorrow?**
+No. It is a research prototype. Real use needs testing on patients as they arrive, data that includes race, and review by doctors.
+
+**Where is the code?**
+`notebook.ipynb` runs everything from raw data to results in about 3 minutes. `news2.py` is the checklist score as code.
+
 ---
 
 <details>
