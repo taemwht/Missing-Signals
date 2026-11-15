@@ -1,0 +1,12 @@
+,0
+health_risk_news2_agreement,0.987
+alarm_rate_news2_5,0.30560016231967635
+alarm_rate_news2_7,0.10002015647296429
+caught@5 NEWS2 >= 5,0.7817258883248731
+caught@5 Logistic regression,0.815989847715736
+caught@5 LightGBM,0.8375634517766497
+"caught@5 LightGBM, vitals only",0.7538071065989848
+caught@7 NEWS2 >= 7,0.49111675126903553
+caught@7 Logistic regression,0.6053299492385786
+caught@7 LightGBM,0.6700507614213198
+"caught@7 LightGBM, vitals only",0.5088832487309645
