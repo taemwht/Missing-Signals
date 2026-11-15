@@ -2,6 +2,8 @@
 
 8th Annual Datathon for Social Good, Advanced Track.
 
+**Slide deck:** [Missed Signals (Google Slides)](https://docs.google.com/presentation/d/1WV6_GxmIpxidvJJHupQ5hSno9OfCSJRMx016nEmJtmU/edit?usp=sharing)
+
 ## The problem we're solving
 
 **Hospitals often spot sepsis too late.** Sepsis is a deadly reaction to an infection, and every hour without treatment matters. To catch it early, hospitals use a checklist score that sets off an alarm when a patient looks sick.
