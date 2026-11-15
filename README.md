@@ -77,17 +77,6 @@ It has two blind spots:
 
 **Limits:** the model's biggest clue is time spent in the ICU; without it, the model only matches the checklist. We tested ICU patients and sepsis only. This is a prototype, not a medical tool. It should support doctors and nurses, not replace their judgment.
 
-## Advanced Track checklist
-
-| Requirement | How we meet it |
-|---|---|
-| **Model** | LightGBM and logistic regression, trained on hospital A (notebook section 5) |
-| **Baseline** | NEWS2, the published clinical rule hospitals use, and majority class |
-| **Evaluation** | Hospital B, never used for training or tuning: share warned early, false alarms, AUROC (sections 2 and 6) |
-| **Error and fairness** | Sex, age group, ICU type, oxygen scale, oxygen use, consciousness (sections 2a and 7); missed patients (section 8) |
-| **Data decisions** | Matching the datathon labels to NEWS2, dropping the leaked patient ID, carrying vitals forward. `news2.py` is checked against hand-scored patients (sections 1 and 4) |
-| **Reproducibility** | `notebook.ipynb` runs from raw data to every number here; fixed seed 42; `requirements.txt` |
-
 ---
 
 <details>
