@@ -54,50 +54,37 @@ It has two blind spots:
 
 - **141 more patients warned early**, out of 788.
 - **A bad oxygen clip cost the checklist about 42 patients.** Our model lost none.
-- **It worked for women, men, younger and older patients.** It was not better in medical ICUs (81% vs 82%).
+- **It worked for women, men, all age groups and surgical ICUs.** It was not better in medical ICUs (81% vs 82%).
 
-## Limits
+## Where the model fails
 
-- **The model's biggest clue is time spent in the ICU.** Without it, the model only matches the checklist.
-- **We simulated the oxygen-clip error**, because no dataset records race.
-- **ICU patients and sepsis only.** This is a prototype, not a medical tool.
+- **It still missed 128 of 788 sepsis patients** (urgent level). The checklist missed 61 of those same patients too.
+- **Many missed patients looked normal right before sepsis.** Example: heart rate 81, oxygen 100%, normal temperature, checklist score 3. Neither tool can catch a patient whose vital signs don't change.
+- **Sometimes the checklist was right and the model was wrong.** Example: patient B100612 had a checklist score of 10 (emergency), but the model gave a low risk.
 
-## Common questions
+## Social good and ethics
 
-**Did you build your own model?**
-Yes. We trained a machine-learning model (LightGBM, which combines many small decision trees) on about 20,000 ICU stays from hospital A. We tested it on about 20,000 stays from hospital B, which it never saw.
+**Who it helps:** sepsis patients, by giving staff more early warnings without more alarms. It also shows that a common sensor error can quietly change who gets care.
 
-**How accurate is it?**
-"Accuracy" is misleading here, because sepsis is rare: only 7 in 100 patients (and 2 in 100 hours) in this data had sepsis. A model that always says "no sepsis" would be 98% accurate and would catch nobody. So we measure two things instead:
+**Who could be hurt, and what we did about it:**
 
-| | Checklist | Our model |
-|---|---|---|
-| Sepsis patients warned early (emergency level) | 49% | **67%** |
-| Sepsis patients warned early (urgent level) | 78% | **84%** |
-| Telling sick from not sick (AUROC*) | 0.70 | **0.78** |
+- **People with darker skin**, if hospitals keep trusting the oxygen clip. We tested this error directly. We could only simulate it, because no dataset records race.
+- **Medical ICU patients**, where the model was not better. We report it instead of hiding it.
+- **Busy nurses**, if a tool adds alarms. We held the number of alarms equal to the checklist.
+- **Patients at other hospitals.** The model learned from two US hospital systems and may not work the same elsewhere.
 
-\* AUROC: take one hour from a patient heading into sepsis and one from a patient who isn't. It is how often the model gives the sicker one a higher risk score. 0.5 is a coin flip; 1.0 is perfect.
+**Limits:** the model's biggest clue is time spent in the ICU; without it, the model only matches the checklist. We tested ICU patients and sepsis only. This is a prototype, not a medical tool. It should support doctors and nurses, not replace their judgment.
 
-**Doesn't it just alarm more?**
-No. We set the model to raise exactly as many alarms as the checklist. False alarms stay about the same: 1.24 vs 1.21 per patient per day.
+## Advanced Track checklist
 
-**Why not use only the datathon's dataset?**
-Its labels are the checklist score itself (987 of 1,000 match), and it has one snapshot per patient with no time. It can't show when the checklist is wrong or late. We used it to check our code and to test the oxygen-clip error.
-
-**What makes the model better?**
-Two things: it watches how vital signs change over 6 hours, and it knows how long a patient has been in the ICU. ICU time is its biggest clue. Without it, the model warns early for 51%, about the same as the checklist.
-
-**Can you prove the oxygen clip hurts people with darker skin?**
-Not directly. Neither dataset records race. We simulated the error that research reports (oxygen reading 3 points too high) and showed what it does to each tool.
-
-**Is it fair across groups?**
-It warned early for more patients than the checklist for women, men, younger and older patients, and in surgical ICUs. In medical ICUs it was slightly worse (81% vs 82%).
-
-**Can a hospital use this tomorrow?**
-No. It is a research prototype. Real use needs testing on patients as they arrive, data that includes race, and review by doctors.
-
-**Where is the code?**
-`notebook.ipynb` runs everything from raw data to results in about 3 minutes. `news2.py` is the checklist score as code.
+| Requirement | How we meet it |
+|---|---|
+| **Model** | LightGBM and logistic regression, trained on hospital A (notebook section 5) |
+| **Baseline** | NEWS2, the published clinical rule hospitals use, and majority class |
+| **Evaluation** | Hospital B, never used for training or tuning: share warned early, false alarms, AUROC (sections 2 and 6) |
+| **Error and fairness** | Sex, age group, ICU type, oxygen scale, oxygen use, consciousness (sections 2a and 7); missed patients (section 8) |
+| **Data decisions** | Matching the datathon labels to NEWS2, dropping the leaked patient ID, carrying vitals forward. `news2.py` is checked against hand-scored patients (sections 1 and 4) |
+| **Reproducibility** | `notebook.ipynb` runs from raw data to every number here; fixed seed 42; `requirements.txt` |
 
 ---
 
@@ -116,17 +103,6 @@ No. It is a research prototype. Real use needs testing on patients as they arriv
 | Caught (>= 5) with SpO2 + 3 | 72.8% | 81.3% | 85.9% | |
 
 Health Risk dataset: our NEWS2 code matches 987 of 1,000 labels; `Patient_ID` alone gives 99.7% accuracy (dropped); SpO2 + 3 moves 155 of 1,000 patients to a lower band.
-
-### Advanced Track checklist
-
-| Requirement | Where in `notebook.ipynb` |
-|---|---|
-| Trained model | Section 5: logistic regression and LightGBM, trained on hospital A only |
-| Baseline | NEWS2 (published clinical rule) and majority class |
-| Held-out evaluation | Section 2: 30% held-out split. Section 6: hospital B, never used for training or tuning |
-| Error and fairness analysis | Sections 2a and 7: oxygen scale, oxygen use, consciousness, sex, age group, ICU type. Section 8: missed patients |
-| Data decisions, checked by hand | Sections 1 and 4. `news2.py` is unit-tested against hand-scored rows |
-| Reproducibility | Fixed seed 42, `requirements.txt`, raw data to results in one notebook |
 
 ### Method
 
