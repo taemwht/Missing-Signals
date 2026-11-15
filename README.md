@@ -1,175 +1,74 @@
 # Missed Signals
 
-**Hospitals use a simple checklist score to spot patients who are getting sicker. We tested it on 40,000 real hospital stays. It warned early for only about half of the patients who developed sepsis. A model that also looks at trends warned for two-thirds, with the same number of alarms.**
+**Hospitals use a checklist score to catch patients who are getting sicker. On 40,000 real ICU stays, it warned early for only 49% of patients who got sepsis. Our model warned early for 67%, with the same number of alarms.**
 
 8th Annual Datathon for Social Good, Advanced Track.
 
----
+![Patients warned early: checklist vs our model](figures/fig2_caught.png)
 
-## The short version
+## Key words
 
-1. **Sepsis** is the body's extreme reaction to an infection. It can kill within hours, so every hour of early warning matters.
-2. Hospitals spot patients who are getting worse with a **checklist score**. It works like a smoke detector: when the score gets high, an alarm tells staff to check on the patient.
-3. We gave the checklist and our own **computer model** the same patients and the same number of alarms. Then we counted who warned early for more sepsis patients.
-4. **The checklist warned early for 49% of them. Our model warned early for 67%.** That is 141 more patients out of 788.
-5. The finger clip that measures oxygen can read **too high**, and studies show this happens more often on darker skin. When we made the clip read too high, **the checklist lost about 42 more patients. Our model lost none.**
-
----
-
-## Words we use
-
-| Word | What it means |
+| Word | Meaning |
 |---|---|
-| **Sepsis** | The body's extreme reaction to an infection. The immune system starts to damage the body's own organs. It is a leading cause of death in hospitals, and fast treatment saves lives. |
-| **Vital signs** | The basic body measurements a nurse takes: heart rate, breathing rate, oxygen level, blood pressure, temperature, and whether the patient is alert. |
-| **Pulse oximeter** | The clip on a patient's finger that measures how much oxygen is in the blood, using light. |
-| **ICU** | Intensive care unit: the hospital ward for the sickest patients. |
-| **NEWS2** | The checklist score that many hospitals use (National Early Warning Score 2). Each vital sign gets 0 to 3 points, and the points add up to one total. |
-| **Alarm** | When the NEWS2 total reaches a set number, staff must check on the patient. **5 or more** means "urgent." **7 or more** means "emergency." |
-| **Model** | A computer program that learns patterns from past patients, then uses them to judge new patients. |
-| **Warned early** | An alarm went off at some point in the 12 hours before the patient developed sepsis. |
-| **False alarm** | An alarm for a patient who never developed sepsis. We count them per patient per day, because each hour can raise one alarm. |
-
----
+| **Sepsis** | The body's extreme reaction to an infection. It damages organs and can kill within hours. |
+| **ICU** | Intensive care unit, where the sickest patients stay. |
+| **Checklist score (NEWS2)** | What hospitals use today. A nurse gives points for heart rate, breathing, oxygen, blood pressure, temperature and alertness. A high total sets off an alarm. |
+| **Oxygen clip** | The finger clip that measures oxygen. It can read too high, more often on darker skin. |
+| **Model** | A computer program that learns patterns from past patients. |
+| **Warned early** | An alarm went off in the 12 hours before sepsis started. |
 
 ## The problem
 
-### What hospitals do today
+The checklist has two blind spots:
 
-A nurse measures each patient's vital signs every few hours and adds up the NEWS2 points. For example, a fast heart rate gets points, and so does low oxygen. A high total calls a doctor.
+1. **It sees one moment.** It can't tell that a heart rate has climbed for 6 hours.
+2. **It trusts the oxygen clip.** If the clip reads too high, a sick patient looks fine.
 
-### Why that misses people
+## What we did
 
-- **It only looks at one moment.** The checklist cannot see that a heart rate has climbed for 6 hours straight. It only sees where the heart rate is now.
-- **It trusts one sensor completely.** If the oxygen clip reads too high, a sick patient looks healthy, and the checklist stays quiet. A large study found that Black patients had nearly 3 times as many low-oxygen cases that the clip missed ([Sjoding et al., New England Journal of Medicine, 2020](https://pmc.ncbi.nlm.nih.gov/articles/PMC7808260)).
-
----
-
-## What we did, step by step
-
-### Step 1: We checked the datathon's dataset
-
-The datathon gave us 1,000 patients, each with one set of vital signs and a risk label (low, medium, high).
-
-- **We found that the labels are the NEWS2 checklist itself.** Our own NEWS2 code gave the same answer for 987 of the 1,000 patients. All 13 differences come from one small rule for patients with lung disease.
-- **We found a leak.** The patient ID number alone predicts the label 99.7% of the time, so it would let a model "cheat." We removed it.
-
-This dataset is **one snapshot per patient, with no time** and no record of who actually got sicker. So it can check our checklist code, but it cannot tell us when the checklist is wrong. We needed real outcomes over time.
-
-### Step 2: We added real hospital data over time
-
-We used the **PhysioNet 2019 sepsis dataset**: 40,336 real ICU stays from two US hospital systems.
-
-- It records each patient's vital signs **every hour**, often for days.
-- It marks **the hour each patient developed sepsis**.
-
-This lets us replay each stay hour by hour and ask: "Would an alarm have gone off before sepsis started?"
-
-### Step 3: We built a model that looks at trends
-
-For every hour, our model sees the same vital signs as the checklist, plus:
-
-- **how each vital sign changed over the last 6 hours** (going up or down),
-- the patient's age and sex,
-- **how long the patient has been in the ICU.**
-
-### Step 4: We made the test fair
-
-- **Different hospitals.** The model learned only from hospital A. We tested it only on hospital B, which it never saw. That shows whether it works on new patients.
-- **Same number of alarms.** Any tool can catch more patients by alarming all the time. So we set our model to raise **exactly as many alarms as the checklist**. Then the only question is whether its alarms go to the right patients.
-
-### Step 5: We tested the oxygen-clip error
-
-We cannot see skin color in either dataset. So we **simulated** the error: we added 3 points to every oxygen reading, which is about the size of error the research reports. Then we ran the checklist and the models again.
-
----
+1. **Checked the datathon data.** Its labels are the checklist score itself, and the patient ID leaked the answer. It has no time, so we used it only to check our code.
+2. **Added real ICU data.** 40,336 stays with vital signs every hour and the hour each patient got sepsis.
+3. **Built a model** that also looks at how each vital sign changed over the last 6 hours.
+4. **Made the test fair.** We trained on one hospital and tested on another. The model got the same number of alarms as the checklist.
+5. **Tested a bad oxygen clip.** We made every oxygen reading 3 points too high and ran the test again.
 
 ## What we found
 
-![Sepsis patients warned early: checklist vs our model](figures/fig2_caught.png)
-
-### 1. The checklist misses about half of sepsis patients
-
-At the **emergency** alarm level (7 or more), with the same number of alarms:
-
-| | Warned early | False alarms per patient per day |
+| | Checklist | Our model |
 |---|---|---|
-| NEWS2 checklist | **49%** | 1.21 |
-| Our model (simple version) | 61% | 1.01 |
-| **Our model (best version)** | **67%** | 1.24 |
+| Sepsis patients warned early | 49% | **67%** |
+| ...when the oxygen clip reads too high* | 78% → 73% | 84% → 86% |
+| False alarms per patient per day | 1.21 | 1.24 |
 
-At the **urgent** alarm level (5 or more), the checklist warned early for 78% and our best model for 84%.
+\* At the lower ("urgent") alarm level.
 
-### 2. A wrong oxygen reading hides patients from the checklist
+- **141 more patients warned early**, out of 788.
+- **A bad oxygen clip cost the checklist about 42 patients.** Our model lost none.
+- **It worked for women, men, younger and older patients.** It was not better in medical ICUs (81% vs 82%).
 
-![What happens when the oxygen clip reads 3 points too high](figures/fig3_oximeter_bias.png)
+## Limits
 
-When the clip reads 3 points too high (urgent alarm level):
-
-- **The checklist drops from 78% to 73%.** That is about 42 more sepsis patients with no early warning, out of 788.
-- **Our models do not drop.** They judge many signals together, so one wrong number cannot fool them.
-
-In the datathon's 1,000 patients, the same error moved **155 patients** into a lower risk group than they should be in.
-
-### 3. The model works across groups of people
-
-At the urgent alarm level, our model warned early for more patients than the checklist did in each of these groups:
-
-| Group | Checklist | Our model |
-|---|---|---|
-| Women | 79% | 85% |
-| Men | 78% | 83% |
-| Under 45 | 73% | 83% |
-| 80 and older | 76% | 83% |
-| Surgical ICU | 83% | 88% |
-| Medical ICU | **82%** | **81%** |
-
-The model was **not** better in medical ICUs. We report that.
-
-### 4. What drives the model
-
-![Which information the model relies on most](figures/fig4_importance.png)
-
-**Time in the ICU is the model's strongest clue.** A version of the model with vital signs and trends only, without time in the ICU, warned early for 51%. That is about the same as the checklist. Hospital staff do know how long a patient has been in the ICU. But in this dataset, that number may also reflect how the records were kept. So we report both versions.
-
-### 5. One patient, replayed
-
-![One patient's last 12 hours before sepsis](figures/fig5_patient_replay.png)
-
-For this patient from hospital B, our model's alarm went off **12 hours before sepsis**, while the checklist stayed below its alarm level.
+- **The model's biggest clue is time spent in the ICU.** Without it, the model only matches the checklist.
+- **We simulated the oxygen-clip error**, because no dataset records race.
+- **ICU patients and sepsis only.** This is a prototype, not a medical tool.
 
 ---
 
-## What this does not show
+<details>
+<summary><b>Technical details</b> (methods, full results, how to run)</summary>
 
-- **We simulated the oxygen-clip error.** Neither dataset records race, so we cannot measure the error by race directly.
-- **ICU patients only.** Patients on regular wards are less sick and are measured less often. Results there may differ.
-- **One illness.** We tested sepsis only.
-- **Time in the ICU drives most of the gain** (see finding 4).
-- **This is a research prototype, not a medical tool.** Real use would need testing on new patients as they arrive, data that includes race, and review by doctors.
-
----
-
-## Why it matters
-
-Sepsis moves fast, and every hour of warning matters. A checklist that only looks at one moment misses patients who are slowly getting worse. A sensor that reads wrong on some skin tones decides who gets help. A tool that looks at trends and many signals together can catch more patients **without adding more alarms** for already-busy staff.
-
----
-
-## For technical readers
-
-### Results in detail
+### Full results, hospital B (788 sepsis patients)
 
 | Measure | NEWS2 | Logistic regression | LightGBM | LightGBM, no ICU time |
 |---|---|---|---|---|
-| Hourly AUROC, hospital B | 0.701 | 0.757 | 0.784 | 0.725 |
+| Hourly AUROC | 0.701 | 0.757 | 0.784 | 0.725 |
 | Caught, alarm budget = NEWS2 >= 7 | 49.1% | 60.5% | 67.0% | 50.9% |
 | False alarms per patient-day (>= 7) | 1.21 | 1.01 | 1.24 | 1.14 |
 | Caught, alarm budget = NEWS2 >= 5 | 78.2% | 81.6% | 83.8% | 75.4% |
 | False alarms per patient-day (>= 5) | 4.18 | 3.93 | 4.80 | 3.99 |
 | Caught (>= 5) with SpO2 + 3 | 72.8% | 81.3% | 85.9% | |
 
-Health Risk dataset: NEWS2 rule accuracy 0.993; logistic regression and LightGBM 0.967. LightGBM macro-F1 is 0.63 on not-alert patients (n = 31).
+Health Risk dataset: our NEWS2 code matches 987 of 1,000 labels; `Patient_ID` alone gives 99.7% accuracy (dropped); SpO2 + 3 moves 155 of 1,000 patients to a lower band.
 
 ### Advanced Track checklist
 
@@ -184,10 +83,10 @@ Health Risk dataset: NEWS2 rule accuracy 0.993; logistic regression and LightGBM
 
 ### Method
 
-1. **NEWS2** (`news2.py`): Royal College of Physicians scoring for respiratory rate, SpO2 (scales 1 and 2), oxygen use, systolic blood pressure, heart rate, consciousness and temperature.
-2. **PhysioNet features**: the 5 vital signs both datasets share, carried forward within each stay; 6-hour maximum, minimum and change for each; oxygen use (FiO2 > 0.21); age; sex; hours in ICU (ICULOS). Consciousness is not recorded, so it is scored as alert.
-3. **Alarm-budget matching**: each model's threshold is set on hospital A so it raises the same share of hourly alarms as NEWS2 >= 5 or >= 7. The thresholds are applied unchanged to hospital B.
-4. **Early warning**: a sepsis patient counts as caught if any alarm fires in the 12 hours before onset (onset = first `SepsisLabel` hour + 6, per the challenge definition). Only stays with at least 12 hours before onset are scored (788 patients in hospital B).
+1. **NEWS2** (`news2.py`): Royal College of Physicians scoring, SpO2 scales 1 and 2.
+2. **Features**: 5 shared vital signs carried forward; 6-hour max, min and change; oxygen use (FiO2 > 0.21); age; sex; hours in ICU (ICULOS). Consciousness is not recorded, so it is scored as alert.
+3. **Alarm-budget matching**: thresholds set on hospital A to match the NEWS2 >= 5 or >= 7 alarm rate, then applied unchanged to hospital B.
+4. **Early warning**: caught = any alarm in the 12 hours before onset (first `SepsisLabel` hour + 6). Only stays with 12+ hours before onset are scored.
 
 ### How to run
 
@@ -199,19 +98,11 @@ pip install -r requirements.txt
 jupyter nbconvert --to notebook --execute notebook.ipynb
 ```
 
-Runtime: about 3 minutes on a laptop.
+More charts are in `figures/`. Oxygen-clip study: [Sjoding et al., NEJM 2020](https://pmc.ncbi.nlm.nih.gov/articles/PMC7808260).
 
-### Files
+</details>
 
-| File | What it is |
-|---|---|
-| `notebook.ipynb` | The full analysis, from raw data to results, with outputs |
-| `notebook.py` | The same notebook as a plain Python script |
-| `news2.py` | The NEWS2 checklist score as code |
-| `plots.py` | Chart style |
-| `figures/` | The 5 charts and `summary.csv` |
+## Data
 
-## Data and licenses
-
-- Health_Risk_Dataset.csv: datathon-provided, Apache 2.0.
-- PhysioNet/Computing in Cardiology Challenge 2019 (Reyna et al., Critical Care Medicine 2020), CC BY 4.0. https://doi.org/10.13026/v64v-d857
+- **Health_Risk_Dataset.csv**: from the datathon (Apache 2.0).
+- **ICU data**: PhysioNet/Computing in Cardiology Challenge 2019 (Reyna et al., Critical Care Medicine 2020; CC BY 4.0, https://doi.org/10.13026/v64v-d857). We downloaded it from the Kaggle copy [Prediction of Sepsis](https://www.kaggle.com/datasets/salikhussaini49/prediction-of-sepsis), which lists CC BY-NC-SA 4.0.
