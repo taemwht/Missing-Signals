@@ -1,8 +1,18 @@
 # Missed Signals
 
-**Hospitals use a checklist score to catch patients who are getting sicker. On 40,000 real ICU stays, it warned early for only 49% of patients who got sepsis. Our model warned early for 67%, with the same number of alarms.**
-
 8th Annual Datathon for Social Good, Advanced Track.
+
+## The problem we're solving
+
+**Hospitals often spot sepsis too late.** Sepsis is a deadly reaction to an infection, and every hour without treatment matters. To catch it early, hospitals use a checklist score that sets off an alarm when a patient looks sick.
+
+**At its emergency level, that alarm gives no early warning for about half of sepsis patients.** And when the finger clip that measures oxygen reads too high, which happens more often on darker skin, it misses even more.
+
+## Our solution
+
+**A model that warns earlier, with the same number of alarms.** It watches how a patient's vital signs change over time, instead of looking at one moment.
+
+On 40,000 real ICU stays, the checklist warned early for **49%** of sepsis patients. Our model warned early for **67%**. The bad finger clip did not fool it.
 
 ![Patients warned early: checklist vs our model](figures/fig2_caught.png)
 
@@ -17,9 +27,9 @@
 | **Model** | A computer program that learns patterns from past patients. |
 | **Warned early** | An alarm went off in the 12 hours before sepsis started. |
 
-## The problem
+## Why the checklist misses patients
 
-The checklist has two blind spots:
+It has two blind spots:
 
 1. **It sees one moment.** It can't tell that a heart rate has climbed for 6 hours.
 2. **It trusts the oxygen clip.** If the clip reads too high, a sick patient looks fine.
